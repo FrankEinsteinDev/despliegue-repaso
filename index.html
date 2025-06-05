@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Examen de Despliegue de Aplicaciones Web</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f4f6f8;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1e88e5;
+        }
+
+        .question {
+            background: white;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin: 10px auto;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            max-width: 800px;
+        }
+
+        .question h4 {
+            margin-bottom: 10px;
+            color: #37474f;
+        }
+
+        .option {
+            margin: 4px 0;
+        }
+
+        .option label {
+            display: block;
+            padding: 6px 10px;
+            border-radius: 4px;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .option label:hover {
+            background-color: #e3f2fd;
+            cursor: pointer;
+        }
+
+        .btn {
+            display: inline-block;
+            background: #1e88e5;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 12px 18px;
+            font-size: 16px;
+            margin: 20px 10px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #1565c0;
+        }
+
+        #results {
+            text-align: center;
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 600px;
+            margin: 30px auto;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .button-group {
+            text-align: center;
+            margin-top: 30px;
+        }
+    </style>
+
+</head>
+
+<body>
+    <h1>Examen - Despliegue de Aplicaciones Web</h1>
+    <form id="examForm"></form>
+    <div class="button-group">
+        <button class="btn" onclick="checkAnswers()">Corregir</button>
+        <button class="btn" onclick="generateExamScroll()">Reiniciar Examen</button>
+    </div>
+
+
+    <div id="results" style="margin-top: 20px; font-size: 18px; font-weight: bold;"></div>
+
+    <script>
+        const questionsPool = [
+            { q: "¿Qué archivo usa Apache para configuración por directorio?", o: ["httpd.conf", "apache.ini", ".htaccess", "apache.xml"], a: 2 },
+            { q: "¿Cuál de estos servidores es más eficiente en alto tráfico?", o: ["Apache", "Tomcat", "Nginx", "IIS"], a: 2 },
+            { q: "¿Qué archivo de configuración principal usa Nginx?", o: ["nginx.xml", "server.conf", "main.ini", "nginx.conf"], a: 3 },
+            { q: "¿Cuál es el puerto por defecto de HTTP?", o: ["21", "22", "80", "443"], a: 2 },
+            { q: "¿Qué archivo define los Virtual Hosts en Apache?", o: ["vhosts.conf", "server.conf", "web.xml", "apache.users"], a: 0 },
+            { q: "¿Cuál de estos protocolos se usa para transferencias seguras?", o: ["HTTP", "FTP", "SSH", "Telnet"], a: 2 },
+            { q: "¿Qué comando se usa para reiniciar Apache en Linux?", o: ["service apache restart", "apachectl restart", "restart apache", "systemctl reboot apache"], a: 1 },
+            { q: "¿Cuál es la ruta típica del archivo de configuración de Nginx en Linux?", o: ["/etc/nginx/nginx.conf", "/usr/nginx.conf", "/nginx/settings.conf", "/var/nginx.conf"], a: 0 },
+            { q: "¿Qué protocolo permite cifrado en conexiones web?", o: ["HTTP", "FTP", "HTTPS", "SSH"], a: 2 },
+            { q: "¿Cuál es el puerto por defecto de HTTPS?", o: ["80", "22", "21", "443"], a: 3 },
+            { q: "¿Qué lenguaje se usa comúnmente para configurar Nginx?", o: ["YAML", "JSON", "Propietario de Nginx", "XML"], a: 2 },
+            { q: "¿Qué herramienta se utiliza para probar la configuración de Nginx?", o: ["nginx -t", "nginx -check", "nginxctl test", "nginx --verify"], a: 0 },
+            { q: "¿Cuál de estos archivos es típico en la raíz de un sitio web?", o: ["config.ini", "index.html", "main.py", "start.sh"], a: 1 },
+            { q: "¿Qué comando se usa para reiniciar Nginx?", o: ["nginx -restart", "systemctl nginx restart", "nginx restart", "nginx -r"], a: 1 },
+            { q: "¿Cuál es la principal diferencia entre Apache y Nginx?", o: ["Licencia", "Popularidad", "Manejo de conexiones concurrentes", "Velocidad de disco"], a: 2 },
+            { q: "¿Qué módulo de Apache permite redireccionamientos y reescrituras?", o: ["mod_ssl", "mod_alias", "mod_rewrite", "mod_proxy"], a: 2 },
+            { q: "¿Qué significa SSL?", o: ["Secure Shell Layer", "Simple Security Login", "Secure Sockets Layer", "Secure Service Layer"], a: 2 },
+            { q: "¿Qué se debe hacer después de cambiar la configuración de Nginx?", o: ["Nada", "Reiniciar el servidor", "Recargar configuración", "Limpiar caché"], a: 2 },
+            { q: "¿Qué hace el archivo robots.txt?", o: ["Bloquea direcciones IP", "Restringe acceso a buscadores", "Configura cookies", "Activa HTTPS"], a: 1 },
+            { q: "¿Cuál de estos es un archivo de log típico de Apache?", o: ["access.log", "index.log", "web.log", "apache.txt"], a: 0 },
+            { q: "¿Qué significa 404 en HTTP?", o: ["Error interno", "Redireccionamiento", "No encontrado", "Servidor caído"], a: 2 },
+            { q: "¿Qué hace el puerto 22?", o: ["HTTP", "FTP", "SSH", "SMTP"], a: 2 },
+            { q: "¿Qué comando muestra si Apache está activo en Linux?", o: ["apachectl -status", "service apache2 status", "status apache", "apache status"], a: 1 },
+            { q: "¿Qué comando recarga la configuración de Nginx sin reiniciar?", o: ["nginx -reload", "systemctl restart nginx", "nginx -s reload", "nginx --refresh"], a: 2 },
+            { q: "¿Qué archivo indica una redirección permanente en Apache?", o: [".redirect", ".htaccess", "config.ini", "perm.txt"], a: 1 },
+            { q: "¿Qué tipo de archivo es MIME?", o: ["Configuración", "Script", "Tipo de contenido", "Log"], a: 2 },
+            { q: "¿Cuál es la extensión de un certificado SSL?", o: [".crt", ".key", ".ssl", ".pem"], a: 0 },
+            { q: "¿Qué significa el código 200 en HTTP?", o: ["Error de cliente", "No encontrado", "Redireccionamiento", "Éxito"], a: 3 },
+            { q: "¿Qué módulo se requiere para HTTPS en Apache?", o: ["mod_http", "mod_ssl", "mod_secure", "mod_https"], a: 1 },
+            { q: "¿Qué herramienta gráfica permite administrar servidores web?", o: ["MySQL Workbench", "phpMyAdmin", "cPanel", "Visual Studio"], a: 2 },
+            { q: "¿Qué es un 'virtual host'?", o: ["Host virtualizado", "Subdominio", "Múltiples sitios en un servidor", "Un backup"], a: 2 },
+            { q: "¿Qué hace el archivo .htaccess?", o: ["Administra bases de datos", "Restringe usuarios", "Configura reglas por directorio", "Optimiza imágenes"], a: 2 },
+            { q: "¿Qué significa FTP?", o: ["Fast Transfer Protocol", "File Transport Protocol", "File Transfer Protocol", "File Tracking Protocol"], a: 2 },
+            { q: "¿Qué protocolo se usa para envío de correos?", o: ["POP3", "SMTP", "IMAP", "FTP"], a: 1 },
+            { q: "¿Qué puerto usa FTP por defecto?", o: ["20/21", "22", "23", "80"], a: 0 },
+            { q: "¿Qué significa DNS?", o: ["Domain Number System", "Data Name Service", "Domain Name System", "Digital Name Service"], a: 2 },
+            { q: "¿Cuál es el propósito del archivo hosts en un sistema operativo?", o: ["Configurar proxy", "Bloquear puertos", "Resolución local de nombres", "Optimizar RAM"], a: 2 },
+            { q: "¿Qué hace el comando 'ping'?", o: ["Medir velocidad de descarga", "Probar conectividad", "Enviar archivos", "Bloquear IPs"], a: 1 },
+            { q: "¿Qué significa CDN?", o: ["Central Data Node", "Content Delivery Network", "Compressed Data Network", "Client Domain Node"], a: 1 },
+            { q: "¿Qué herramienta de línea de comandos prueba HTTP?", o: ["ftp", "ping", "curl", "scp"], a: 2 },
+            { q: "¿Qué significa IP?", o: ["Internet Package", "Internal Protocol", "Internet Protocol", "Input Port"], a: 2 },
+            { q: "¿Cuál es una dirección IP válida?", o: ["256.256.256.256", "192.168.1.1", "999.999.999.999", "300.300.300.300"], a: 1 },
+            { q: "¿Qué protocolo cifra conexiones remotas seguras?", o: ["FTP", "SSH", "HTTP", "Telnet"], a: 1 },
+            { q: "¿Qué archivo de configuración define las rutas en Nginx?", o: ["nginx.map", "routes.ini", "server block", "nginx.path"], a: 2 },
+            { q: "¿Qué tipo de archivo suele tener una clave privada SSL?", o: [".pem", ".crt", ".key", ".conf"], a: 2 },
+            { q: "¿Qué significa CORS en servidores web?", o: ["Cross-Origin Resource Sharing", "Connection Overload Retry System", "Cache Over Rewrite Script", "Config of Remote Services"], a: 0 },
+            { q: "¿Qué indica un error 500?", o: ["Error del cliente", "Requiere login", "Error del servidor", "Página no encontrada"], a: 2 },
+            { q: "¿Qué significa TTL en DNS?", o: ["Time to Live", "Total Transfer Log", "Transfer Token Length", "Text Transmission Level"], a: 0 },
+            { q: "¿Cuál de estos es un método HTTP?", o: ["SEND", "CONNECT", "REQUEST", "FETCH"], a: 1 },
+            { q: "¿Qué comando de Linux muestra los puertos abiertos?", o: ["netstat", "ping", "top", "ps"], a: 0 },
+            { q: "¿Qué significa HTTPS?", o: ["Hyperlink Transfer Protocol Secure", "HyperText Transfer Protocol Secure", "Hyper Transfer Protocol Simple", "Hyper Transport System"], a: 1 },
+            { q: "¿Qué es Let's Encrypt?", o: ["Un navegador", "Un sistema operativo", "Una CA gratuita", "Un protocolo web"], a: 2 },
+            { q: "¿Qué comando usa Apache para verificar errores de configuración?", o: ["apachectl configtest", "apache -verify", "apache check", "apache test"], a: 0 },
+            { q: "¿Qué formato usa SSL para certificados?", o: ["TXT", "PEM", "YAML", "INI"], a: 1 },
+            { q: "¿Qué hace el archivo index.html?", o: ["Es la entrada de un sitio web", "Encripta datos", "Conecta con base de datos", "Reinicia el servidor"], a: 0 },
+            { q: "¿Qué servidor usa configuración basada en eventos?", o: ["Apache", "Tomcat", "Nginx", "IIS"], a: 2 },
+            { q: "¿Qué archivo contiene configuraciones globales de Apache?", o: ["apache.conf", "httpd.conf", "global.conf", "main.ini"], a: 1 },
+            { q: "¿Qué extensión tienen los archivos de configuración de Nginx?", o: [".conf", ".nginx", ".txt", ".ini"], a: 0 },
+            { q: "¿Qué significa CGI?", o: ["Common Gateway Interface", "Control Gateway Integration", "Common Group Internet", "Central Gateway Interaction"], a: 0 },
+            { q: "¿Qué indica el código 301?", o: ["Redirección permanente", "Requiere autenticación", "Error interno", "No encontrado"], a: 0 },
+            { q: "¿Qué indica el código 302?", o: ["Redirección temporal", "Página no encontrada", "Error interno", "Conexión rechazada"], a: 0 },
+            { q: "¿Qué protocolo usa el puerto 443?", o: ["HTTPS", "FTP", "SMTP", "SSH"], a: 0 },
+            { q: "¿Qué herramienta se usa para crear certificados autofirmados?", o: ["OpenSSL", "CertBot", "SSLForge", "SSHKeygen"], a: 0 },
+            { q: "¿Qué es un Reverse Proxy?", o: ["Servidor de respaldo", "Red de distribución", "Servidor que reenvía peticiones", "Firewall de hardware"], a: 2 },
+            { q: "¿Qué permite el archivo mime.types en Nginx?", o: ["Definir certificados", "Asignar puertos", "Asignar tipos de contenido", "Crear logs"], a: 2 },
+            { q: "¿Qué archivo define la raíz del documento en Nginx?", o: ["root.conf", "site.conf", "nginx.conf", "default.conf"], a: 3 },
+            { q: "¿Cuál de los siguientes permite protección contra ataques DDoS?", o: [".htaccess", "firewalld", "robots.txt", "index.html"], a: 1 },
+            { q: "¿Cuál es una práctica común de seguridad en servidores web?", o: ["Usar Telnet", "Desactivar logs", "Mantener software actualizado", "Evitar HTTPS"], a: 2 },
+            { q: "¿Qué indica el código 403?", o: ["Prohibido", "Éxito", "Redirección", "Error interno"], a: 0 },
+            { q: "¿Qué protocolo se usa para acceder a páginas web?", o: ["FTP", "SMTP", "HTTP", "POP3"], a: 2 },
+            { q: "¿Qué es una CA?", o: ["Central Access", "Certificate Authority", "Connection Agent", "Control Area"], a: 1 },
+            { q: "¿Qué hace el comando systemctl restart nginx?", o: ["Cierra el sistema", "Muestra logs", "Reinicia Nginx", "Elimina Nginx"], a: 2 },
+            { q: "¿Qué tipo de servidor es Apache?", o: ["Servidor de base de datos", "Servidor web", "Servidor de archivos", "Servidor DNS"], a: 1 },
+            { q: "¿Qué significa mod en Apache?", o: ["Modo de configuración", "Módulo", "Modelo de datos", "Módulo de logs"], a: 1 },
+            { q: "¿Qué archivo define los MIME types en Apache?", o: ["mime.types", "httpd.conf", "types.conf", "mod_mime.conf"], a: 0 },
+            { q: "¿Qué hace un firewall en un servidor?", o: ["Analiza logs", "Filtra tráfico", "Optimiza imágenes", "Conecta a FTP"], a: 1 },
+            { q: "¿Cuál de estos es un servidor web?", o: ["MariaDB", "Redis", "Apache", "PostgreSQL"], a: 2 },
+            { q: "¿Qué se necesita para habilitar HTTPS en Nginx?", o: ["Archivo .htaccess", "Módulo PHP", "Certificado SSL", "Plugin WordPress"], a: 2 },
+            { q: "¿Qué herramienta permite automatizar la obtención de certificados SSL?", o: ["CertBot", "OpenSSL", "Docker", "Cron"], a: 0 },
+            { q: "¿Qué significa 503 en HTTP?", o: ["Servicio no disponible", "No autorizado", "Éxito", "Redirección permanente"], a: 0 },
+            { q: "¿Qué protocolo se usa para recibir correos?", o: ["SMTP", "FTP", "IMAP", "HTTP"], a: 2 },
+            { q: "¿Qué software puede usarse como reverse proxy?", o: ["Apache", "Nginx", "HAProxy", "Todos los anteriores"], a: 3 },
+            { q: "¿Qué archivo de Apache contiene configuraciones por directorio?", o: [".access", ".apache", ".htaccess", ".moddir"], a: 2 },
+            { q: "¿Cuál es un método HTTP seguro?", o: ["POST", "GET", "DELETE", "PUT"], a: 0 },
+            { q: "¿Qué significa el código 401?", o: ["No encontrado", "Error del servidor", "No autorizado", "Redirección temporal"], a: 2 },
+            { q: "¿Qué extensión se usa comúnmente para scripts CGI?", o: [".html", ".cgi", ".php", ".sh"], a: 1 },
+            { q: "¿Qué comando muestra el estado del servicio Nginx?", o: ["nginx status", "systemctl status nginx", "nginx --info", "nginxctl status"], a: 1 },
+            { q: "¿Qué significa IP pública?", o: ["Red interna", "Dirección local", "IP accesible desde internet", "IP para localhost"], a: 2 },
+            { q: "¿Qué significa NAT?", o: ["Network Address Translation", "Name Authentication Token", "New Access Tunneling", "Node Authorization Table"], a: 0 },
+            { q: "¿Qué servidor puede manejar más conexiones concurrentes con menos recursos?", o: ["Apache", "Nginx", "IIS", "Tomcat"], a: 1 },
+            { q: "¿Cuál es un código HTTP de redirección?", o: ["200", "500", "301", "403"], a: 2 },
+            { q: "¿Qué significa Load Balancer?", o: ["Balance de disco", "Balance de CPU", "Distribuidor de tráfico", "Compresor de archivos"], a: 2 },
+            { q: "¿Qué protocolo se usa en navegadores para navegar seguro?", o: ["SSH", "HTTP", "FTP", "HTTPS"], a: 3 },
+            { q: "¿Cuál es un ejemplo de IP privada?", o: ["8.8.8.8", "192.168.1.1", "172.33.45.22", "54.12.90.10"], a: 1 },
+            { q: "¿Qué herramienta permite ver tráfico de red en tiempo real?", o: ["iftop", "netcat", "curl", "htop"], a: 0 },
+            { q: "¿Qué significa 'binding' en configuración de servidor?", o: ["Compresión de datos", "Unión de puertos", "Asignar IP y puerto", "Verificar logs"], a: 2 },
+            { q: "¿Qué sistema de logs usa comúnmente Linux?", o: ["logd", "journalctl", "eventvwr", "syslogger"], a: 1 },
+            { q: "¿Qué es un servidor dedicado?", o: ["Servidor físico exclusivo", "Servidor virtual", "Base de datos remota", "Servidor sin SO"], a: 0 },
+            { q: "¿Qué significa MTU en redes?", o: ["Maximum Transmission Unit", "Minimal Transfer Unit", "Main Tunnel Unit", "Media Time Unit"], a: 0 },
+            { q: "¿Qué comando verifica resolución DNS en Linux?", o: ["ping", "traceroute", "dig", "scp"], a: 2 },
+            { q: "¿Qué lenguaje de programación basado en etiquetas permite crear documentos visualmente agradables con estilos de texto, imágenes y contenido multimedia?", o: ["CSS", "JavaScript", "HTML", "XML"], a: 2 },
+            { q: "¿Qué proceso se lleva a cabo en una conexión HTTP y siempre se inicia en el cliente, según la Fig. 4?", o: ["La respuesta del servidor", "La petición", "La entrega de contenido", "El cierre de la conexión"], a: 1 },
+            { q: "¿Qué software permite capturar y analizar tráfico de red para comprobar el comportamiento de los paquetes?", o: ["Ping", "Traceroute", "Wireshark", "Netstat"], a: 2 },
+            { q: "¿Qué modelo arquitectónico es una evolución del modelo Cliente/Servidor y añade servidores especializados para optimizar el rendimiento?", o: ["Modelo P2P", "Modelo Cliente/Servidor", "Modelo de tres capas", "Modelo Monolítico"], a: 2 },
+            { q: "En el modelo de tres capas, ¿qué servidor se encarga de almacenar y resolver las consultas de la base de datos?", o: ["Servidor web", "Servidor de aplicaciones", "Servidor de base de datos", "Cliente"], a: 2 },
+            { q: "Según el modelo de tres capas, ¿a quién devuelve la base de datos las respuestas de las consultas?", o: ["Directamente al cliente", "Al servidor web", "A todos los servidores", "Al servidor de aplicaciones"], a: 2 },
+            { q: "¿Cuál de las siguientes es una ventaja del modelo de tres capas?", o: ["Menor tráfico de red entre servidores", "Menor número de servidores necesarios", "Mayor flexibilidad por servidores especializados", "Menor tiempo de espera para el cliente"], a: 2 },
+            { q: "¿Cuál de las siguientes es un inconveniente del modelo de tres capas?", o: ["Menor riesgo de seguridad", "Mayor complejidad de mantenimiento", "Mayor tráfico de red entre servidores", "Información no centralizada"], a: 2 },
+            { q: "¿Qué protocolo es abordado en el Tema 1 como una primera aproximación?", o: ["FTP", "SMTP", "HTTP", "SSH"], a: 2 },
+            { q: "Para configurar el uso de cuotas de disco en sistemas Linux, ¿qué utilidad se menciona?", o: ["fdisk", "df", "quota", "mount"], a: 2 },
+            { q: "En el modo activo de FTP, ¿qué puede provocar problemas de conexión si el servidor está detrás de un firewall?", o: ["El cliente inicia la conexión al puerto 21", "El servidor abre un puerto aleatorio", "El cliente abre la conexión a un puerto aleatorio del servidor", "El firewall bloquea el puerto 20"], a: 2 },
+            { q: "En el modo pasivo de FTP, ¿a qué puerto inicia la conexión el cliente?", o: ["Puerto 20", "Puerto 21", "Puerto aleatorio", "Puerto 80"], a: 1 },
+            { q: "En el servidor VSFTPD, ¿qué dos tipos de usuarios se pueden configurar para iniciar sesión y acceder a la información?", o: ["Usuarios root y usuarios de grupo", "Usuarios invitados y usuarios administradores", "Usuarios locales del sistema Linux y usuarios virtuales", "Usuarios FTP y usuarios HTTP"], a: 2 },
+            { q: "¿Qué protocolo de seguridad se implementará para los servidores de transferencia de datos, según la introducción del Tema 10?", o: ["TLS", "HTTPS", "SSL", "IPsec"], a: 2 },
+            { q: "Para probar una conexión anónima a un servidor FTP vía web, ¿qué se muestra en la Fig. 3?", o: ["Una ventana de terminal", "Un navegador web", "Un gestor de archivos", "Una aplicación cliente FTP"], a: 1 },
+            { q: "Los departamentos de informática que se encargan de las tareas de despliegue y mantenimiento de software, ¿qué tratan de estandarizar para la instalación de equipos nuevos?", o: ["Las contraseñas de usuario", "La configuración de red", "El software de los equipos y crear una plantilla", "Los dispositivos de hardware"], a: 1 },
+            { q: "En el modo pasivo de FTP, después de que el cliente inicia la conexión al puerto 21, ¿qué acción realiza el servidor?", o: ["Cierra la conexión", "Devuelve un error", "Abre un puerto aleatorio para la conexión", "Solicita un usuario y contraseña"], a: 2 },
+            { q: "¿En qué año se definió el sistema de nombres de dominio (DNS) con el propósito de facilitar la navegación en Internet?", o: ["1973", "1983", "1993", "2003"], a: 1 },
+            { q: "¿Qué protocolo del modelo OSI es el DNS?", o: ["Capa de Red", "Capa de Transporte", "Capa de Aplicación", "Capa de Enlace de Datos"], a: 2 },
+            { q: "¿Qué puertos utiliza el protocolo DNS para establecer la conexión y realizar consultas?", o: ["Puerto 20 UDP y TCP", "Puerto 21 UDP y TCP", "Puerto 53 UDP y TCP", "Puerto 80 UDP y TCP"], a: 2 },
+            { q: "¿Qué define el sistema de nombres de dominio (DNS) en una base de datos jerárquica?", o: ["La relación de usuarios y contraseñas", "La relación de direcciones IP y nombres DNS", "La relación de puertos de red y servicios", "La relación de sistemas operativos y hardware"], a: 1 },
+            { q: "En la estructura jerárquica de DNS, ¿qué se encuentra en la parte superior?", o: ["TLD", "SLD", "Dominio raíz", "Subdominios"], a: 2 },
+            { q: "¿Cómo se representa el dominio raíz en la estructura DNS?", o: ["Con una barra (/)", "Con una coma (,)", "Con un punto (.)", "Con un guion (-)"], a: 2 },
+            { q: "¿Qué tipo de TLD está reservado para países, como .es o .de?", o: ["gTLD", "ccTLD", "sTLD", "iTLD"], a: 1 },
+            { q: "¿A qué tipo de dominios genéricos (gTLDs) están destinados los dominios .edu?", o: ["Organizaciones comerciales", "Redes", "Instituciones educativas y universidades", "Organizaciones gubernamentales"], a: 2 },
+            { q: "¿Cómo se conocen los principales servidores DNS de Internet, compuestos por cientos de hosts en clúster por todo el mundo?", o: ["Servidores caché", "Servidores locales", "Servidores raíz", "Servidores secundarios"], a: 2 },
+            { q: "¿Qué tipo de servidores DNS almacenan en memoria las últimas peticiones realizadas por los clientes y no tienen autoridad sobre ninguna zona?", o: ["Servidores primarios", "Servidores secundarios", "Servidores autoritativos", "Servidores locales o caching-only"], a: 3 },
+            { q: "Cuando un cliente realiza una pregunta recursiva a un servidor DNS, ¿qué debe hacer dicho servidor?", o: ["Devolver la dirección de otro servidor", "Rechazar la petición", "Resolver la petición consultando otros servidores si es necesario", "Solo consultar su caché local"], a: 2 },
+            { q: "En el proceso de resolución de nombres de dominio, si el servidor raíz no puede resolver una petición, ¿qué devuelve al servidor local?", o: ["Un mensaje de error", "La IP del dominio", "Un listado de servidores gTLD", "Un código '404 Not Found'"], a: 2 },
+            { q: "¿Qué dominio se crea para permitir búsquedas inversas de nombres DNS a partir de direcciones IP?", o: ["dns.arpa", "ip.arpa", "in-addr.arpa", "reverse.arpa"], a: 2 },
+            { q: "¿Qué tipo de registro DNS relaciona una dirección IP con su nombre DNS?", o: ["Registro AAAA", "Registro CNAME", "Registro A", "Registro MX"], a: 2 },
+            { q: "¿Qué tipo de registro DNS se utiliza para crear alias de un nombre de dominio?", o: ["Registro A", "Registro CNAME", "Registro MX", "Registro NS"], a: 1 },
+            { q: "¿Qué tipo de registro DNS permite realizar búsquedas inversas?", o: ["Registro A", "Registro NS", "Registro PTR", "Registro TXT"], a: 2 },
+            { q: "En el caso práctico 1 del Tema 11, ¿qué puerto utilizan los paquetes UDP que Matías detectó para hacer peticiones DNS?", o: ["Puerto 21", "Puerto 80", "Puerto 443", "Puerto 53"], a: 3 },
+            { q: "Según el caso práctico 2 del Tema 11, si el navegador web no devuelve el resultado correcto y el acceso por IP pública funciona, ¿qué tipo de registro DNS se debe comprobar para ver si coincide con la IP pública?", o: ["Registro CNAME", "Registro MX", "Registro A", "Registro PTR"], a: 2 },
+            { q: "¿Cuál es uno de los motivos por los que los servidores secundarios son importantes en la infraestructura DNS?", o: ["Centralizan toda la información", "Permiten el acceso anónimo", "Ofrecen alta disponibilidad y rendimiento", "Son los únicos que pueden resolver peticiones recursivas"], a: 2 },
+            { q: "¿Qué tipo de pregunta DNS realiza un servidor local a uno de los servidores raíz cuando desconoce la dirección IP que corresponde al servidor web?", o: ["Recursiva", "Iterativa", "Directa", "Inversa"], a: 1 },
+            { q: "¿Cuál de los siguientes comandos es útil para el diagnóstico de problemas en servidores DNS?", o: ["grep", "ls", "host", "top"], a: 2 },
+            { q: "¿Qué argumento del comando host permite especificar el tipo de registro DNS (ns, txt, mx, SOA, A, etc.) sobre el que se quiere obtener información?", o: ["-a", "-s", "-t", "-v"], a: 2 },
+            { q: "¿Qué comando DNS permite conocer qué servidor resuelve la petición DNS y permite especificar el servidor al que se quiere hacer la consulta?", o: ["host", "dig", "whois", "nslookup"], a: 3 },
+            { q: "¿Qué comando DNS permite hacer consultas para recopilar información y el uso de argumentos para filtrar el resultado de la búsqueda?", o: ["nslookup", "host", "dig", "whois"], a: 2 },
+            { q: "¿Qué comando se utiliza para obtener datos administrativos de un dominio?", o: ["ping", "whois", "netstat", "ifconfig"], a: 1 },
+            { q: "Para la gestión de dominios, ¿qué soluciones ofrecen servicio DNS además de servidor web o de correo multitenant?", o: ["Apache y Nginx", "cPanel o ISPConfig", "OpenSSH y FTP", "MySQL y PostgreSQL"], a: 1 },
+            { q: "Cuando se configura un servidor DNS en Windows, ¿qué tipo de zona permite crear registros para resolver nombres de dominio?", o: ["Zona de búsqueda inversa", "Zona principal de delegación", "Zona de búsqueda directa", "Zona de almacenamiento en caché"], a: 2 },
+            { q: "¿Qué paquete se instala en Ubuntu para implementar el servicio DNS?", o: ["Apache2", "Nginx", "BIND", "OpenSSH"], a: 2 },
+            { q: "¿Qué entidad es la encargada de mantener y desarrollar BIND y gestiona uno de los 13 servidores raíz de Internet?", o: ["ICANN", "IANA", "ISC", "Apache Software Foundation"], a: 2 },
+            { q: "¿Cuál es el principal fichero de configuración de BIND que contiene enlaces al resto de ficheros y no se debe añadir nada sobre él?", o: ["named.conf.options", "named.conf.local", "named.conf", "named.conf.default-zones"], a: 2 },
+            { q: "¿Qué fichero de configuración de BIND almacena las zonas por defecto?", o: ["named.conf", "named.conf.options", "named.conf.local", "named.conf.default-zones"], a: 3 },
+            { q: "Para poder resolver nombres DNS a partir de la dirección IP (búsqueda inversa) en BIND9, ¿qué deberá activar Silvia en el servidor DNS?", o: ["La zona de búsqueda directa", "La zona de búsqueda inversa", "El registro SOA", "El registro NS"], a: 1 },
+            { q: "En el proceso de configuración de BIND, ¿qué fichero se edita para indicar al servidor la utilización exclusiva de direcciones IPv4?", o: ["/etc/bind/named.conf", "/etc/default/bind9", "/etc/bind/named.conf.options", "/etc/bind/named.conf.local"], a: 1 },
+            { q: "Después de configurar las zonas y registros en BIND9, ¿qué comando se utiliza para reiniciar el servicio DNS?", o: ["systemctl stop bind9", "service bind9 start", "sudo service bind9 restart", "bind9 reload"], a: 2 },
+            { q: "¿Cuál de las siguientes es una de las tareas cubiertas en el Tema 12 sobre la configuración de servidores de nombres de dominio?", o: ["Desplegar aplicaciones web con Docker", "Configurar servidores de correo electrónico", "Crear zonas y registros para resolver nombres DNS dentro de una red local", "Instalar bases de datos relac,ionales"], a: 2 },
+            { q: "¿Cuál de las siguientes es una ventaja de los directorios digitales sobre los directorios en papel?", o: ["Son estáticos y no permiten modificaciones", "No permiten añadir nuevos campos en un registro", "Optimizan la seguridad y permiten actualizaciones inmediatas", "Son menos flexibles"], a: 2 },
+            { q: "¿Qué protocolo del modelo OSI se basa el servicio de directorio para establecer conexiones cliente-servidor?", o: ["HTTP", "FTP", "LDAP", "SMTP"], a: 2 },
+            { q: "¿Qué significa DN en el contexto de la nomenclatura LDAP?", o: ["Domain Name", "Directory Node", "Distinguished Name", "Data Network"], a: 2 },
+            { q: "¿Qué formato de fichero se utiliza para realizar operaciones masivas, como la carga masiva de usuarios, en un servidor LDAP?", o: ["XML", "JSON", "LDIF", "CSV"], a: 2 },
+            { q: "¿Cuál de los siguientes es un servidor LDAP Open Source para sistemas Linux, escrito en C y con su primera versión estable liberada en 1998?", o: ["Microsoft Active Directory", "OpenLDAP", "FreeIPA", "Apache Directory Server"], a: 1 },
+            { q: "¿Qué servidor de directorio de Microsoft requiere un sistema Windows Server para su instalación y cuenta con una interfaz de administración gráfica?", o: ["OpenLDAP", "Active Directory", "ApacheDS", "389 Directory Server"], a: 1 },
+            { q: "En el caso práctico 1 del Tema 13, Joaquín descubre que puede usar ficheros LDIF para realizar una carga masiva de usuarios en un servidor de directorio. ¿Qué tipo de operaciones permiten los ficheros LDIF?", o: ["Consultas únicamente", "Operaciones masivas de datos", "Creación de informes", "Análisis de tráfico de red"], a: 1 },
+            { q: "¿Qué comando se utiliza para importar un fichero LDIF en OpenLDAP?", o: ["ldapadd", "ldapimport", "slapadd", "ldapmod"], a: 2 },
+            { q: "¿Qué comando permite realizar consultas al directorio LDAP para verificar la importación de registros o solicitar datos?", o: ["ldapquery", "ldapget", "ldapsearch", "ldapexport"], a: 2 },
+            { q: "En Microsoft Active Directory, ¿qué asistente se utiliza para instalarlo seleccionando 'Servicios de dominio de Active Directory'?", o: ["Asistente para agregar software", "Asistente para configurar servidor web", "Asistente para agregar roles y características", "Asistente de instalación de base de datos"], a: 2 },
+            { q: "Durante la instalación de Active Directory, ¿qué servicio se instala automáticamente?", o: ["Servicio FTP", "Servicio DHCP", "Servicio DNS", "Servicio SSH"], a: 2 },
+            { q: "En el contexto de la conexión LDAP con una aplicación web, ¿qué proceso se conoce como BIND?", o: ["La creación de un nuevo usuario", "La búsqueda de un grupo de usuarios", "Un usuario intermedio que autoriza la conexión y transmite consultas de inicio de sesión", "La encriptación de las comunicaciones LDAP"], a: 2 },
+            { q: "Para facilitar la gestión y afinar los resultados en búsquedas LDAP, ¿qué modificador se puede usar para mostrar los resultados que coincidan con un 'uid' indicado?", o: ["cn", "ou", "dc", "uid"], a: 3 },
+            { q: "¿Por qué es importante la documentación de aplicaciones, según el Tema 14?", o: ["Para aumentar el rendimiento de la aplicación", "Para reducir el tamaño del código fuente", "Para facilitar la resolución de errores y el entendimiento del funcionamiento", "Para automatizar las actualizaciones del software"], a: 2 },
+            { q: "¿Qué tipo de documentación es utilizada por el propio equipo o departamento que diseña o mantiene la aplicación?", o: ["Documentación para clientes", "Documentación para uso externo", "Documentación para uso interno", "Manual de usuario"], a: 2 },
+            { q: "En el mundo de Internet, ¿qué formato es muy común para un apartado de FAQ (Preguntas Frecuentes) en una aplicación web?", o: ["PDF", "TXT", "HTML", "DOCX"], a: 2 },
+            { q: "¿Qué formato de documentación solo permite el uso de caracteres de texto y no permite incluir imágenes o hipervínculos?", o: ["HTML", "PDF", "TXT", "RTF"], a: 2 },
+            { q: "¿Qué tipo de sistema se puede utilizar para almacenar de forma segura la documentación interna confidencial o privada, con un sistema de control de accesos?", o: ["Servidor FTP público", "Google Drive sin autenticación", "NAS o servidor de archivos SMB", "Dropbox público"], a: 2 },
+            { q: "¿Qué programa genera documentación a partir de los comentarios en el código fuente de Java?", o: ["PhpDocumentor", "Doxygen", "Natural Docs", "Javadoc"], a: 3 },
+            { q: "¿Qué sistema práctico y funcional se menciona para almacenar datos de documentación interna de manera sencilla, categorizando la información mediante etiquetas?", o: ["Base de datos SQL", "Hojas de cálculo", "Una wiki", "Servicio de correo electrónico"], a: 2 },
+            { q: "¿Qué generador de documentación está escrito en PHP y permite la estandarización del formato y la generación de un índice?", o: ["Javadoc", "Doxygen", "Natural Docs", "PhpDocumentor"], a: 3 },
+            { q: "¿Cómo se llama el elemento más básico en PhpDocumentor, compuesto por una descripción corta, descripción larga y etiquetas?", o: ["CodeBlock", "DocEntry", "DocBlock", "CommentBlock"], a: 2 },
+            { q: "¿Qué generador de documentación está escrito en C++ y soporta lenguajes como Java, C o C++?", o: ["PhpDocumentor", "Doxygen", "Natural Docs", "Javadoc"], a: 1 },
+            { q: "A diferencia de PhpDocumentor, Doxygen no necesita un servidor web para funcionar. ¿Verdadero o Falso?", o: ["Verdadero", "Falso", "Depende del sistema operativo", "Solo si es en Linux"], a: 0 },
+            { q: "¿Qué generador de documentación se presenta como 'todoterreno', capaz de trabajar con 21 lenguajes de programación y desarrollado en Perl?", o: ["Javadoc", "Doxygen", "Natural Docs", "PhpDocumentor"], a: 2 },
+            { q: "¿En qué formato de archivo solo puede exportar el resultado Natural Docs?", o: ["PDF", "XML", "TXT", "HTML"], a: 3 },
+            { q: "Para estandarizar el estilo y reducir información redundante en la documentación, ¿qué aportan las plantillas en las herramientas de documentación?", o: ["Solo permiten añadir imágenes", "Añaden complejidad al código", "Ofrecen un estilo estandarizado", "Aumentan el tamaño de los ficheros"], a: 2 },
+            { q: "¿Cuál es el propósito principal de los sistemas de control de versiones (VCS) en el desarrollo de software?", o: ["Automatizar la compilación de código", "Gestionar la seguridad de la red", "Registrar cambios y permitir volver a versiones anteriores", "Optimizar el rendimiento de la aplicación"], a: 2 },
+            { q: "¿Qué software, basado en Git y aparecido en 2014, actúa como sistema de control de versiones y permite crear wikis para documentación complementaria?", o: ["GitHub", "Bitbucket", "GitLab", "Subversion"], a: 2 },
+            { q: "En GitLab, ¿qué sección permite crear consultas públicas para el desarrollador de un módulo o la comunidad?", o: ["Merge requests", "Pipelines", "Issues", "Settings"], a: 2 },
+            { q: "¿Qué comando de gitlab-ctl se utiliza para iniciar o parar el servicio GitLab?", o: ["gitlab-ctl status", "gitlab-ctl restart", "gitlab-ctl [start | stop | restart]", "gitlab-ctl logs"], a: 2 },
+            { q: "Para securizar GitLab utilizando LDAP, ¿qué fichero se debe modificar?", o: ["gitlab.yml", "nginx.conf", "gitlab.rb", "ldap.conf"], a: 2 },
+            { q: "¿Cuál es uno de los beneficios de usar un sistema de control de versiones en el desarrollo de una aplicación?", o: ["Reduce la necesidad de pruebas", "Asegura que el código es libre de errores", "Permite volver a un punto de partida si las modificaciones causan fallos", "Elimina la necesidad de documentación"], a: 2 },
+            { q: "¿Cuál es la definición de un servidor web, según el Tema 2?", o: ["Un programa para editar código HTML", "Un software preparado para escuchar peticiones de clientes y ofrecer la respuesta", "Un tipo de navegador web", "Un dispositivo de almacenamiento de datos"], a: 1 },
+            { q: "¿Qué gestor de bases de datos relacionales se menciona como uno de los más utilizados, junto con alternativas como MariaDB y PostgreSQL?", o: ["SQL Server", "Oracle Database", "MySQL", "MongoDB"], a: 2 },
+            { q: "¿Cuál de los siguientes no es mencionado como uno de los servidores web más utilizados?", o: ["Apache", "Nginx", "Microsoft IIS", "Tomcat"], a: 3 },
+            { q: "¿Qué paquete se menciona para agilizar la instalación de Apache, MySQL y PHP en Windows?", o: ["LAMP", "XAMPP", "WAMP", "MAMP"], a: 2 },
+            { q: "¿Qué proyecto se destaca por automatizar el despliegue de aplicaciones de forma rápida y optimizando el uso de recursos?", o: ["Kubernetes", "VirtualBox", "Docker", "Ansible"], a: 2 },
+            { q: "¿Qué protocolo se utiliza para securizar las conexiones entre el cliente y el servidor, cifrando la conexión y utilizando certificados digitales?", o: ["HTTP", "FTP", "SSH", "HTTPS"], a: 3 },
+            { q: "En Apache, ¿qué fichero de configuración define opciones generales y de rendimiento?", o: ["mods-available", "ports.conf", "apache2.conf", "sites-enabled"], a: 2 },
+            { q: "En Apache, ¿en qué carpeta se almacenan todos los módulos de PHP instalados, tanto activados como no activados?", o: ["mods-enabled", "mods-available", "sites-available", "conf.d"], a: 1 },
+            { q: "En Apache, ¿qué fichero de configuración es el de los puertos utilizados por Apache para atender peticiones?", o: ["apache2.conf", "ports.conf", "httpd.conf", "sites-available"], a: 1 },
+            { q: "¿Qué tipo de certificados utilizan por defecto los servidores web, los cuales son autofirmados y genéricos?", o: ["Let's Encrypt", "CA certificados", "Snake-oil", "Wildcard SSL"], a: 2 },
+            { q: "¿Qué módulo de Apache permite al servidor utilizar protocolos SSL y TSL para servir webs de forma segura usando HTTPS?", o: ["mod_rewrite", "mod_auth_digest", "mod_ssl", "mod_php"], a: 2 },
+            { q: "¿Qué módulo de Apache permite activar la redirección de URL y es necesario para utilizar los ficheros htaccess?", o: ["mod_ssl", "mod_auth_digest", "mod_headers", "mod_rewrite"], a: 3 },
+            { q: "¿Qué aplicación, contenida en el paquete Apache-utils, permite testear el rendimiento de un servidor web realizando una gran cantidad de peticiones?", o: ["iperf", "netcat", "Apache Benchmark (AB)", "stress-ng"], a: 2 },
+            { q: "¿Qué parámetro del comando ab (Apache Benchmark) se utiliza para especificar el número de peticiones que se realizarán?", o: ["-c", "-k", "-n", "-H"], a: 2 },
+            { q: "¿Qué parámetro del comando ab se utiliza para especificar la cantidad de conexiones concurrentes?", o: ["-n", "-c", "-k", "-g"], a: 1 },
+            { q: "Para listar los módulos instalados en Nginx, ¿qué comando se utiliza?", o: ["nginx -h", "nginx -t", "nginx -V", "nginx -s reload"], a: 2 },
+            { q: "En el contexto de Hosts Virtuales, ¿qué tipo de configuración permite que el servidor tenga una única dirección IP y asigne nombres DNS a los sitios web para servir los recursos?", o: ["Basados en IP", "Basados en nombre", "Basados en puerto", "Basados en protocolo"], a: 1 },
+            { q: "En un Virtual Host de Apache, si no se especifica un nombre DNS, ¿a qué carpeta se redirigirán todas las peticiones que el servidor escuche por el puerto 80?", o: ["/etc/apache2/conf.d", "/var/www/html", "/usr/local/apache2/htdocs", "/srv/www/"], a: 1 },
+            { q: "Para que un servidor Apache pueda atender peticiones a través de Internet por nombre en un Virtual Host, ¿qué debe apuntar a la IP del servidor en la zona DNS del dominio correspondiente?", o: ["El registro MX", "El registro PTR", "El registro A", "El registro CNAME"], a: 2 },
+            { q: "Para acceder a las webs por el nombre DNS en un Virtual Host, ¿qué archivo debe modificarse en el equipo del cliente para añadir la IP y el FQDN?", o: ["resolv.conf", "network.conf", "hosts", "dnsmasq.conf"], a: 2 },
+            { q: "¿Qué significa FQDN?", o: ["File Query Domain Name", "Fully Qualified Domain Name", "Fast Query Data Network", "Full Quality Domain Name"], a: 1 },
+            { q: "Al crear las carpetas de los sitios para Virtual Hosts en Apache, ¿a qué usuario se le debe asignar la propiedad de estas carpetas?", o: ["root", "apache", "www-data", "nginx"], a: 2 },
+            { q: "¿Qué herramienta Open Source se utiliza para automatizar la instalación y renovación de certificados SSL de Let's Encrypt en servidores web?", o: ["OpenSSL", "Keytool", "Certbot", "HTTPS Everywhere"], a: 2 },
+            { q: "Certbot añade una tarea programada para la renovación automática de certificados. ¿En qué fichero se añade esta tarea?", o: ["rc.local", "boot.d", "crontab", "systemd.timer"], a: 2 },
+            { q: " el caso práctico 1 del Tema 5, si Pedro necesita instalar certificados SSL firmados para servidores temporales sin invertir en su compra, ¿qué solución se le plantea?", o: ["Crear sus propios certificados autofirmados", "Comprar certificados de una CA", "Utilizar Certbot", "Desactivar SSL"], a: 2 },
+            { q: "¿Qué comando del firewall ufw en Linux se utiliza para mostrar el estado del firewall y un listado numerado de las reglas?", o: ["ufw status", "ufw show", "ufw status numbered", "ufw list"], a: 2 },
+            { q: "¿Qué comando del firewall ufw se utiliza para activar el firewall?", o: ["ufw disable", "ufw start", "ufw enable", "ufw reload"], a: 2 },
+            { q: "Además de limitar el acceso a la IP de la oficina del cliente, ¿qué otra acción se debe permitir en el firewall para tener gestión del servidor?", o: ["Acceso a todos los puertos", "Acceso solo al puerto 80", "Acceso para gestión del servidor", "Bloquear todo el tráfico saliente"], a: 2 },
+            { q: "Para cifrar la conexión HTTPS, ¿qué se necesita en los servidores web?", o: ["Una VPN", "Un software de monitorización", "Certificados digitales", "Un cortafuegos de hardware"], a: 2 },
+            { q: "Los certificados snake-oil son:", o: ["Certificados firmados por una CA reconocida", "Certificados de pago con alta seguridad", "Certificados autofirmados genéricos utilizados por defecto", "Certificados solo para pruebas de desarrollo"], a: 2 },
+            { q: "¿Cuál es una función clave de un servidor de aplicaciones, además de ejecutar código en lenguajes como Java o JavaScript?", o: ["Gestionar la interfaz de usuario", "Comunicarse con un servidor de bases de datos", "Cifrar el tráfico de red", "Almacenar información en el cliente"], a: 1 },
+            { q: "¿Cuál de los siguientes es un servidor de aplicaciones común para aplicaciones Java?", o: ["Nginx", "Apache Tomcat", "Node.js", "Microsoft IIS"], a: 1 },
+            { q: "¿Cuál de los siguientes es un servidor de aplicaciones comúnmente utilizado para aplicaciones escritas con Node.js?", o: ["Apache Tomcat", "JBoss", "Node.js", "WebLogic"], a: 2 },
+            { q: "Para crear una imagen de la aplicación Node.js con Docker, ¿qué comando se utiliza?", o: ["docker run", "docker start", "docker build", "docker compose"], a: 2 },
+            { q: "En un Dockerfile para una aplicación Node.js, ¿qué instrucción se utiliza para exponer un puerto, como el 3000?", o: ["PORT", "LISTEN", "EXPOSE", "BIND"], a: 2 },
+            { q: "Una diferencia fundamental entre un servidor web y un servidor de aplicaciones es que el servidor de aplicaciones:", o: ["Solo sirve contenido estático", "No puede procesar lenguajes de programación", "Ejecuta código escrito en lenguajes como Java o JavaScript", "Siempre almacena la información en el cliente"], a: 2 },
+            { q: "¿Qué sistema se propone en el Tema 6 para empaquetar una aplicación y realizar un despliegue masivo de instancias de una aplicación web?", o: ["Máquinas virtuales", "Contenedores Docker", "Servidores físicos dedicados", "SaaS"], a: 1 },
+            { q: "En el caso de Node.js, ¿dónde se gestiona la configuración de cada proyecto, definiendo parámetros como el puerto de escucha?", o: ["En el fichero server.xml", "En el fichero app.js", "En el fichero web.xml", "En el fichero nginx.conf"], a: 1 },
+            { q: "Para comprobar la versión de Node.js instalada en un servidor, ¿qué comando se ejecuta?", o: ["npm -v", "node version", "node -v", "nodejs --info"], a: 2 },
+            { q: "Si la versión de Node.js instalada con apt-get install Node.js está anticuada, ¿qué se sugiere hacer para actualizarla?", o: ["Reinstalar el sistema operativo", "Utilizar los repositorios oficiales de Node.js", "Compilar Node.js desde el código fuente", "Usar un gestor de paquetes diferente"], a: 1 },
+            { q: "Para cambiar el puerto por defecto de Apache Tomcat, ¿qué tipo de configuración se ajusta?", o: ["Configuración de la aplicación web", "Configuración de la base de datos", "Configuración del conector HTTP en server.xml", "Configuración del sistema operativo"], a: 2 },
+            { q: "¿Qué tipo de bucle utilizan las peticiones en Node.js, realizando peticiones a la base de datos por hilos?", o: ["Bucle síncrono", "Bucle de eventos de JavaScript", "Bucle de procesamiento secuencial", "Bucle de conexiones directas"], a: 1 },
+            { q: "¿Qué protocolo se menciona como mecanismo para el inicio de sesión basado en dominios, que permite crear un sistema de autenticación centralizada y se encuentra en la capa de aplicación del modelo OSI?", o: ["HTTP", "FTP", "LDAP", "SMTP"], a: 2 },
+            { q: "Apache Tomcat ofrece la posibilidad de crear registros personalizados y filtros de solicitudes. ¿Qué elementos utiliza para ello?", o: ["Plugins", "Servlets", "Valves", "Listeners"], a: 2 },
+            { q: "¿Qué tipo de 'válvula' de Tomcat se menciona para el control de accesos?", o: ["AccessLogValve", "RemoteHostValve", "AuthenticationValve", "HealthCheckValve"], a: 1 },
+            { q: "¿Qué herramientas se mencionan para ayudar en la gestión de despliegues y en la ejecución de aplicaciones?", o: ["GitHub y GitLab", "Apache y Nginx", "Jenkins y Forever.js", "MySQL y MongoDB"], a: 2 },
+            { q: "¿Qué servidor de automatización se menciona para facilitar los despliegues?", o: ["Puppet", "Chef", "Jenkins", "Ansible"], a: 2 },
+            { q: "¿Qué herramienta permite que un programa Node.js esté siempre disponible, incluso después de un reinicio del servidor?", o: ["pm2", "nodemon", "foreverjs", "supervisor"], a: 2 },
+            { q: "Cuando un servidor web y un servidor de aplicaciones cooperan, ¿cómo suele actuar el servidor web?", o: ["Como base de datos", "Como gestor de usuarios", "Como proxy", "Como cliente"], a: 2 },
+            { q: "¿Qué protocolo se menciona como uno de los utilizados para la transferencia de archivos en un servidor, junto con SCP-SSH y WebDAV?", o: ["HTTP", "SMTP", "FTP", "POP3"], a: 2 },
+            { q: "En las conexiones FTP, ¿qué comando de consola se utiliza para desconectar del servidor cerrando la sesión?", o: ["Close", "Exit", "Quit", "Bye"], a: 2 },
+            { q: "¿Qué comando de FTP se utiliza para copiar un archivo del servidor FTP al cliente?", o: ["Put", "Upload", "Get", "Download"], a: 2 },
+            { q: "¿Qué comando de FTP se utiliza para copiar un archivo del cliente al servidor FTP?", o: ["Get", "Download", "Put", "Upload"], a: 2 },
+            { q: "¿Qué protocolo se basa en SSH y se menciona como una opción segura para realizar copias de seguridad de archivos en un servidor web?", o: ["FTP", "FTPS", "SCP", "SFTP"], a: 2 },
+            { q: "¿Cuál de las siguientes tareas hace imprescindible la transferencia de archivos en un servidor?", o: ["Navegar por internet", "Enviar correos electrónicos", "Tareas de mantenimiento y copias de seguridad", "Realizar videollamadas"], a: 2 },
+            { q: "En el contexto de la transferencia de archivos, ¿qué significa que los protocolos evolucionan?", o: ["Que se vuelven más complejos", "Que aparecen nuevos protocolos que mejoran la seguridad y la eficiencia", "Que ya no son necesarios", "Que solo funcionan con sistemas operativos específicos"], a: 1 },
+            { q: "Las actualizaciones y los parches de seguridad, ¿qué exigen que hagan los departamentos de informática con las plantillas de instalación de equipos?", o: ["Que se eliminen", "Que se renueven constantemente", "Que se compartan públicamente", "Que se ignoren"], a: 1 },
+            { q: "En el proceso de resolución de nombres de dominio, cuando el ordenador cliente realiza una pregunta recursiva, ¿a qué servidor la dirige inicialmente?", o: ["Al servidor raíz", "Al servidor gTLD", "Al proveedor de servicios de internet (ISP)", "Al servidor de zona del dominio"], a: 2 },
+            { q: "En la estructura DNS, ¿cómo se separan los subdominios de los SLD (Second Level Domain)?", o: ["Por comas", "Por puntos", "Por guiones", "Por barras"], a: 1 },
+            { q: "Los TLD genéricos se pueden categorizar según la finalidad del servicio. ¿Cuál es el propósito de los dominios .com?", o: ["Redes", "Instituciones educativas", "Organizaciones comerciales", "Organizaciones gubernamentales"], a: 2 },
+            { q: "¿Qué es un FQDN en el contexto de DNS?", o: ["Formato de Consulta de Dominio Normalizado", "Nombre de Dominio Completamente Calificado", "Función de Verificación de Direcciones de Red", "Fichero de Zonas y Direcciones Nombradas"], a: 1 },
+            { q: "En la instalación de BIND en Ubuntu Server, ¿qué línea se añade al fichero named.conf.options para forzar el uso de IPv4?", o: ["listen-on-v6 { none; };", "OPTIONS=\"-u bind -4\"", "inet_protocols ipv4;", "bind-ipv4 yes;"], a: 1 },
+            { q: "Cuando se crea una zona de búsqueda inversa en Windows DNS, ¿qué información se debe indicar durante el asistente para que automáticamente invierta los octetos y cree el nombre de zona?", o: ["El nombre del servidor", "El rango IP de la red", "El nombre de la zona directa", "El tipo de registro"], a: 1 },
+            { q: "En Microsoft Active Directory, ¿qué opción se elige en la operación de implementación para crear una estructura nueva?", o: ["Agregar un nuevo controlador de dominio", "Agregar un dominio existente", "Agregar un nuevo bosque", "Unirse a un dominio existente"], a: 2 },
+            { q: "Para verificar la correcta importación de datos en OpenLDAP, ¿qué comando se puede utilizar para realizar búsquedas en el directorio?", o: ["ldapadd", "ldapdelete", "ldapsearch", "ldapmodify"], a: 2 },
+            { q: "La interfaz de administración de Active Directory se describe como:", o: ["Solo de línea de comandos", "Gráfica, cómoda y sencilla de usar", "Complicada y basada en texto", "Solo accesible por PowerShell"], a: 1 },
+            { q: "Una de las capas bien definidas en una wiki por cada una de sus páginas es el código fuente que se almacena en el servidor, habitualmente en texto plano y visible solo al editar artículos. ¿Verdadero o Falso?", o: ["Verdadero", "Falso"], a: 0 },
+            { q: "¿Qué sección del DocBlock de PhpDocumentor contiene la descripción más detallada?", o: ["Descripción corta", "Descripción larga", "Etiquetas", "Encabezado"], a: 1 },
+            { q: "¿Qué comando de gitlab-ctl se utiliza para mostrar el estado de los servicios?", o: ["gitlab-ctl status", "gitlab-ctl show", "gitlab-ctl info", "gitlab-ctl check"], a: 0 },
+            { q: "Además de como sistema de control de versiones, ¿para qué más permite GitLab crear recursos?", o: ["Bases de datos", "Servidores de correo", "Wikis para documentación complementaria", "Contenedores Docker"], a: 2 },
+            { q: "¿Cuál de las siguientes es una alternativa a MySQL mencionada en el Tema 2?", o: ["SQLite", "Oracle", "SQL Server Express", "Access"], a: 0 },
+            { q: "¿Qué tipo de certificados se pueden generar con OpenSSL para cifrar la conexión HTTPS?", o: ["Certificados autofirmados", "Certificados de dominio validado", "Certificados EV SSL", "Certificados con Extended Validation"], a: 0 },
+            { q: "En Apache, ¿en qué directorio se almacenan los ficheros de configuración de los sitios web sin activar?", o: ["sites-enabled", "mods-available", "sites-available", "conf-available"], a: 2 },
+            { q: "¿Qué comando se utiliza para instalar el paquete apache2-utils para utilizar Apache Benchmark?", o: ["apt install apache-bench", "apt-get install apache2-utils", "yum install ab", "dnf install apache-tools"], a: 1 },
+            { q: "¿Qué se debe hacer en la zona DNS del dominio para que el servidor pueda atender peticiones a través de Internet por nombre en un Virtual Host?", o: ["Desactivar el firewall", "Configurar el registro CNAME", "Asegurarse de que el registro A apunte a la IP del servidor", "Usar solo direcciones IP"], a: 2 },
+            { q: "En el procedimiento de configuración de Virtual Hosts en Apache, ¿qué se hace primero con las carpetas de los diferentes sitios en la carpeta pública de Apache?", o: ["Eliminarlas", "Comprimirlas", "Crearlas y asignar la propiedad al usuario www-data", "Moverlas a otra ubicación"], a: 2 },
+            { q: "¿Qué se define en el fichero app.js de un proyecto Node.js?", o: ["Las librerías de Node.js", "Los parámetros de cada aplicación, puerto de escucha y protocolo", "Las dependencias del proyecto", "La configuración del sistema operativo"], a: 1 },
+            { q: "¿Cuál es una de las tareas principales que se cubren en el Tema 7, relacionada con la administración de servidores de aplicaciones?", o: ["Instalación de sistemas operativos", "Configuración de aplicaciones seguras con Apache Tomcat y Node.js", "Despliegue de aplicaciones de escritorio", "Gestión de redes locales"], a: 1 },
+            { q: "¿Qué se establece a la hora de diseñar una aplicación web para autenticar usuarios contra una base de datos, ya sea por requisito o para implementar una capa más de seguridad?", o: ["Mecanismos de cifrado de red", "Mecanismos para autenticar usuarios", "Políticas de contraseñas complejas", "Sistemas de backup automáticos"], a: 1 },
+            { q: "Además de Apache Tomcat, ¿qué otro servidor de aplicaciones se menciona para la redirección de peticiones?", o: ["Nginx", "Node.js", "Microsoft IIS", "JBoss"], a: 1 },
+            { q: "¿Qué se convierte en algo imprescindible para tareas de mantenimiento, copias de seguridad, desarrollo y despliegue de aplicaciones en un servidor?", o: ["El acceso remoto por SSH", "La transferencia de archivos", "La instalación de un antivirus", "El uso de un entorno gráfico"], a: 1 },
+            { q: "¿Qué servicios ofrecen la posibilidad de establecer una conexión segura y eficiente, implementando mecanismos de autenticación y seguridad para operar con carpetas y archivos en servidores?", o: ["Servicios de streaming", "Servicios de bases de datos", "Servicios de transferencia de datos", "Servicios de impresión"], a: 2 },
+            { q: "¿Qué entidad oficial de Formación Profesional elabora el temario 'Despliegue de Aplicaciones Web'?", o: ["Universidad Complutense", "MEDAC", "OpenClassrooms", "Coursera"], a: 1 },
+            { q: "¿Cuál de los siguientes NO es un tipo de usuario para el servidor VSFTPD mencionado en los fuentes?", o: ["Usuarios locales del propio sistema Linux", "Usuarios virtuales", "Usuarios anónimos", "Usuarios de dominio"], a: 3 },
+            { q: "Si el servidor local no tiene el resultado en caché durante el proceso de resolución de nombres de dominio, ¿cuál es el primer paso donde realiza una pregunta iterativa?", o: ["Al servidor gTLD", "Al servidor de zona", "A uno de los servidores raíz", "Al propio cliente"], a: 2 },
+            { q: "¿Qué comandos Linux se utilizan para el diagnóstico de problemas en servidores DNS, según la unidad?", o: ["ping, traceroute, netstat", "grep, awk, sed", "nslookup, dig, whois, host", "iptables, route, ifconfig"], a: 2 },
+            { q: "¿Qué software de directorio es 'Open Source' y está implementado en C?", o: ["Microsoft Active Directory", "OpenLDAP", "Novell eDirectory", "Red Hat Directory Server"], a: 1 },
+            { q: "Un DocBlock en PhpDocumentor está compuesto por tres secciones que siguen el mismo orden. ¿Cuál es el orden correcto?", o: ["Descripción larga, descripción corta, etiquetas", "Etiquetas, descripción corta, descripción larga", "Descripción corta, descripción larga, etiquetas", "Descripción, etiquetas, larga descripción"], a: 2 },
+        ];
+        function generateExam() {
+            const form = document.getElementById('examForm');
+            form.innerHTML = '';
+            const selected = [...questionsPool]
+                .sort(() => 0.5 - Math.random())
+                .slice(0, 30);
+            selected.forEach((q, i) => {
+                const div = document.createElement('div');
+                div.className = 'question';
+                div.innerHTML = `<h4>${i + 1}. ${q.q}</h4>` +
+                    q.o.map((opt, idx) => `
+            <div class="option">
+              <label><input type="radio" name="q${i}" value="${idx}"> ${opt}</label>
+            </div>`).join('');
+                form.appendChild(div);
+            });
+            window.examQuestions = selected;
+        }
+
+        function generateExamScroll() {
+            document.getElementById('results').innerHTML = ''; // limpia resultados anteriores
+            generateExam();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+
+
+        function checkAnswers() {
+            let correct = 0;
+            let incorrect = 0;
+
+            window.examQuestions.forEach((q, i) => {
+                const options = document.getElementsByName(`q${i}`);
+                options.forEach((option, idx) => {
+                    const parentLabel = option.parentElement;
+
+                    // Resalta la opción correcta en verde
+                    if (idx === q.a) {
+                        parentLabel.style.backgroundColor = '#c8e6c9'; // verde claro
+                    }
+
+                    // Si el usuario seleccionó esta opción
+                    if (option.checked) {
+                        if (parseInt(option.value) === q.a) {
+                            correct++;
+                        } else {
+                            incorrect++;
+                            parentLabel.style.backgroundColor = '#ffcdd2'; // rojo claro
+                        }
+                    }
+                });
+            });
+
+            const penalizacion = Math.floor(incorrect / 3);
+            const nota = Math.max(0, correct - penalizacion);
+
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `
+        <p>✅ Aciertos: <strong>${correct}</strong> de 30</p>
+        <p>❌ Errores: <strong>${incorrect}</strong></p>
+        <p>📉 Penalización: <strong>-${penalizacion}</strong> (1 punto menos por cada 3 errores)</p>
+        <p>🎯 <strong>Nota final: ${nota}</strong></p>
+    `;
+        }
+
+
+        generateExam();
+    </script>
+</body>
+
+<!--
+
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣤⣤⠤⠐⠂⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡌⡦⠊⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡀⣼⡊⢀⠔⠀⠀⣄⠤⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣤⣤⣄⣀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣶⠃⠉⠡⡠⠤⠊⠀⠠⣀⣀⡠⠔⠒⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣾⣿⢟⠿⠛⠛⠁
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣼⡇⠀⠀⠀⠀⠑⠶⠖⠊⠁⠀⠀⠀⡀⠀⠀⠀⢀⣠⣤⣤⡀⠀⠀⠀⠀⠀⢀⣠⣤⣶⣿⣿⠟⡱⠁⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢰⣾⣿⡇⠀⢀⡠⠀⠀⠀⠈⠑⢦⣄⣀⣀⣽⣦⣤⣾⣿⠿⠿⠿⣿⡆⠀⠀⢀⠺⣿⣿⣿⣿⡿⠁⡰⠁⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣾⣿⣿⣧⣠⠊⣠⣶⣾⣿⣿⣶⣶⣿⣿⠿⠛⢿⣿⣫⢕⡠⢥⣈⠀⠙⠀⠰⣷⣿⣿⣿⡿⠋⢀⠜⠁⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠠⢿⣿⣿⣿⣿⣰⣿⣿⠿⣛⡛⢛⣿⣿⣟⢅⠀⠀⢿⣿⠕⢺⣿⡇⠩⠓⠂⢀⠛⠛⠋⢁⣠⠞⠁⠀⠀⠀⠀⠀⠀⠀⠀
+⠘⢶⡶⢶⣶⣦⣤⣤⣤⣤⣤⣀⣀⣀⣀⡀⠀⠘⣿⣿⣿⠟⠁⡡⣒⣬⢭⢠⠝⢿⡡⠂⠀⠈⠻⣯⣖⣒⣺⡭⠂⢀⠈⣶⣶⣾⠟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠙⠳⣌⡛⢿⣿⣿⣿⣿⣿⣿⣿⣿⣻⣵⣨⣿⣿⡏⢀⠪⠎⠙⠿⣋⠴⡃⢸⣷⣤⣶⡾⠋⠈⠻⣶⣶⣶⣷⣶⣷⣿⣟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠈⠛⢦⣌⡙⠛⠿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡀⠀⠀⠩⠭⡭⠴⠊⢀⠀⠀⠀⠀⠀⠀⠀⠀⠈⣿⣿⣿⣿⣿⡇⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠈⠙⠓⠦⣄⡉⠛⠛⠻⢿⣿⣿⣿⣷⡀⠀⠀⠀⠀⢀⣰⠋⠀⠀⠀⠀⠀⣀⣰⠤⣳⣿⣿⣿⣿⣟⠑⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠓⠒⠒⠶⢺⣿⣿⣿⣿⣦⣄⣀⣴⣿⣯⣤⣔⠒⠚⣒⣉⣉⣴⣾⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠛⠹⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣭⣉⣉⣤⣿⣿⣿⣿⣿⣿⡿⢀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠟⡁⡆⠙⢶⣀⠀⢀⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⣴⣶⣾⣿⣟⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠿⢛⣩⣴⣿⠇⡇⠸⡆⠙⢷⣄⠻⣿⣦⡄⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣼⣿⣿⣿⣿⣿⣿⣿⣎⢻⣿⣿⣿⣿⣿⣿⣿⣭⣭⣭⣵⣶⣾⣿⣿⣿⠟⢰⢣⠀⠈⠀⠀⠙⢷⡎⠙⣿⣦⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣼⣿⣿⣿⣿⣿⣿⣿⣿⡟⣿⡆⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⠿⠿⠟⠛⠋⠁⢀⠇⢸⡇⠀⠀⠀⠀⠈⠁⠀⢸⣿⡆⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡜⡿⡘⣿⣿⣿⣿⣿⣶⣶⣤⣤⣤⣤⣤⣤⣤⣴⡎⠖⢹⡇⠀⠀⠀⠀⠀⠀⠀⠀⣿⣷⡄⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣦⡀⠘⢿⣿⣿⣿⣿⣿⣿⣿⣿⠿⠿⠛⠋⡟⠀⠀⣸⣷⣀⣤⣀⣀⣀⣤⣤⣾⣿⣿⣿⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⣸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣭⣓⡲⠬⢭⣙⡛⠿⣿⣿⣶⣦⣀⠀⡜⠀⠀⣰⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⢀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣭⣛⣓⠶⠦⠥⣀⠙⠋⠉⠉⠻⣄⣀⣸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⣼⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣶⣆⠐⣦⣠⣷⠊⠁⠀⠀⡭⠙⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡆⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⢠⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⢉⣛⡛⢻⡗⠂⠀⢀⣷⣄⠈⢆⠉⠙⠻⢿⣿⣿⣿⣿⣿⠇⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠘⣿⣿⡟⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡟⣉⢁⣴⣿⣿⣿⣾⡇⢀⣀⣼⡿⣿⣷⡌⢻⣦⡀⠀⠈⠙⠛⠿⠏⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠙⢿⣿⡄⠙⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠿⠛⠛⠛⢯⡉⠉⠉⠉⠉⠛⢼⣿⠿⠿⠦⡙⣿⡆⢹⣷⣤⡀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⠿⠄⠈⠻⠿⠿⠿⠿⠿⠿⠛⠛⠿⠛⠉⠁⠀⠀⠀⠀⠀⠀⠻⠿⠿⠿⠿⠟⠉⠀⠀⠤⠴⠶⠌⠿⠘⠿⠿⠿⠿⠶⠤⠀⠀⠀⠀
+
+
+                        Try not.
+                        Do or do not.
+                        There is no try.
+                                
+                                    -Yoda
+
+   ___  _   _ ___    _      _      ___ _   _ ___ ___  ____  _      _____ ___      _   ___ ___  __  __ ___  _    /\/|___   _   
+  / _ \| | | | __|  | |    /_\    | __| | | | __| _ \|_  / /_\    |_   _| __|    /_\ / __/ _ \|  \/  | _ \/_\  |/\/| __| | |
+ | (_) | |_| | _|   | |__ / _ \   | _|| |_| | _||   / / / / _ \     | | | _|    / _ \ (_| (_) | |\/| |  _/ _ \| \| | _|  |_|
+  \__\_\\___/|___|  |____/_/ \_\  |_|  \___/|___|_|_\/___/_/ \_\    |_| |___|  /_/ \_\___\___/|_|  |_|_|/_/ \_\_|\_|___| (_) 
+
+--> 
+</html>
